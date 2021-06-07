@@ -68,6 +68,9 @@
                 <div class="col-9 align-self-center">
                     <br>
                     <p class="fst-italic text-success" id="success_message" aria-hidden="true" hidden="true"></p>
+                    <div class="alert alert-warning alert-dismissible" id="go_error_message" role="alert" hidden="true">
+                        <strong>Error:</strong> Please check your link.
+                    </div>
                 </div>
             </div>
         <br>
@@ -128,6 +131,20 @@
       return as_array.join('&');
     }
 
+    // Source: https://stackoverflow.com/questions/3452546
+    function getYtVideoIdFromUrl(url){
+      var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+      var match = url.match(regExp);
+      return (match&&match[7].length==11)? match[7] : false;
+    }
+
+    function getYtVideoId(text){
+      if (text.includes("youtube") || text.includes("youtu.be")) {
+        return getYtVideoIdFromUrl(text);
+      }
+      return text;
+    }
+
     let output = document.getElementById('div_output');
     let author = document.getElementById('author');
     let authorPic = document.getElementById('author_pic');
@@ -136,9 +153,15 @@
       document.getElementById('success_message').hidden = true;
       document.getElementById('button_pick').hidden = true;
       document.getElementById('div_output').hidden = true;
+      document.getElementById('go_error_message').hidden = true;
       let query_id = Date.now().toString(16) + Math.random().toString(16);
       document.query_id = query_id;
-      let video_id = document.getElementById('input_video_id').value;
+      let video_id = getYtVideoId(
+            document.getElementById('input_video_id').value);
+      if (!video_id) {
+        document.getElementById('go_error_message').hidden = false;
+        return;
+      }
       let comment_request = new XMLHttpRequest();
       let params = {
         video_id: video_id,
@@ -148,12 +171,17 @@
       comment_request.responseType = "application/json";
       comment_request.send();
       comment_request.onload = function(e) {
+        let response = JSON.parse(comment_request.responseText);
+        let error = response.error;
+        if (error != null) {
+          document.getElementById('go_error_message').hidden = false;
+          return;
+        }
         document.getElementById('spinner_go').hidden = true;
         document.getElementById('success_message').hidden = false;
         document.getElementById('block_dupl').hidden = false;
         document.getElementById('block_filt').hidden = false;
         document.getElementById('button_pick').hidden = false;
-        const response = JSON.parse(comment_request.responseText);
         // response processing.
         document.getElementById("success_message").innerHTML = response.num_comments + " comments loaded";
         // output.innerHTML = response.text;

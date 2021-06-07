@@ -18,16 +18,24 @@ class Server(socketserver.TCPServer):
 
 def main():
     class MyHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
-        def handle_load_comments(self, params):
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
+        def load_comments(self, params):
             cache_key = params['session']
             all_comments = self.server.cache.get(cache_key)
             if not all_comments:
                 all_comments = Fetcher(self.server.api_key, params['video_id'], 'snippet').fetch()
                 self.server.cache.put(cache_key, all_comments)
             response = {'num_comments': len(all_comments)}
+            return response
+
+        def handle_load_comments(self, params):
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            response = {}
+            try:
+                response = self.load_comments(params)
+            except Exception:
+                response['error'] = "Failed to load comments"
             self.wfile.write(json.dumps(response).encode())
 
         def pick_comment(self, params):
