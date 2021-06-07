@@ -23,13 +23,15 @@ class Randomizer:
 
     def randomize(self):
         filtered_comments = self.filter()
+        if not filtered_comments:
+            return None
         return random.choice(filtered_comments)
 
     def filter(self):
 
         def is_comment_valid(comm):
             if self.specific_text:
-                if self.specific_text not in comm.text:
+                if self.specific_text.lower() not in comm.text.lower():
                     return False
             if self.remove_duplicate_users:
                 if comm.author.name in authors:
