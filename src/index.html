@@ -154,6 +154,10 @@
       document.getElementById('button_pick').hidden = true;
       document.getElementById('div_output').hidden = true;
       document.getElementById('go_error_message').hidden = true;
+      document.getElementById('author_pic').hidden = true;
+      document.getElementById('winner_card').hidden = true;
+      document.getElementById('block_dupl').hidden = true;
+      document.getElementById('block_filt').hidden = true;
       let query_id = Date.now().toString(16) + Math.random().toString(16);
       document.query_id = query_id;
       let video_id = getYtVideoId(
@@ -190,9 +194,6 @@
     };
 
     document.getElementById('button_pick').onclick = function() {
-      document.getElementById('div_output').hidden = false;
-      document.getElementById('author_pic').hidden = false;
-      document.getElementById('winner_card').hidden = false;
       let params = {
         session: document.query_id,
         remove_duplicates: document.getElementById('check_remove_duplicates').checked,
@@ -214,6 +215,9 @@
         output.innerHTML = response.text;
         author.innerHTML = response.author.name;
         authorPic.src = response.author.pic_link;
+        document.getElementById('div_output').hidden = false;
+        document.getElementById('author_pic').hidden = false;
+        document.getElementById('winner_card').hidden = false;
       };
       comment_request.open("GET", '/comment?' + toParams(params));
       comment_request.responseType = "application/json";
