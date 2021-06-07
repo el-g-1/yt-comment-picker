@@ -56,20 +56,27 @@ def main():
             self.wfile.write(json.dumps(response).encode())
             return
 
+        def handle_404(self):
+            self.send_error(404, 'Page not found')
+            return
+
+        def get_params(self):
+            parsed_path = urlparse(self.path)
+            params_list = [t.split('=') for t in parsed_path.query.split('&')]
+            params = {p[0]: p[1] for p in params_list}
+            return params
+
         def do_GET(self):
             if self.path == '/':
                 self.path = 'src/index.html'
                 return http.server.SimpleHTTPRequestHandler.do_GET(self)
-            parsed_path = urlparse(self.path)
-            params_list = [t.split('=') for t in parsed_path.query.split('&')]
-            params = {p[0]: p[1] for p in params_list}
             if self.path.startswith('/load_comments'):
-                self.handle_load_comments(params)
+                self.handle_load_comments(self.get_params())
                 return
             if self.path.startswith('/comment'):
-                self.handle_pick_comment(params)
+                self.handle_pick_comment(self.get_params())
                 return
-            # TODO: handle errors
+            self.handle_404()
             return
 
 
