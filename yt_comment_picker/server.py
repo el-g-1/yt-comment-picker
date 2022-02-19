@@ -83,7 +83,7 @@ def main():
 
         def do_GET(self):
             if self.path == "/":
-                self.path = "src/index.html"
+                self.path = "yt_comment_picker/index.html"
                 return http.server.SimpleHTTPRequestHandler.do_GET(self)
             if self.path.startswith("/load_comments"):
                 self.handle_load_comments(self.get_params())

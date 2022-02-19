@@ -19,14 +19,14 @@ class Randomizer:
                 if self.specific_text.lower() not in comm.text.lower():
                     return False
             if self.remove_duplicate_users:
-                if comm.author.name in authors:
+                if comm.author.link in author_links:
                     return False
             return True
 
         filtered_comments = []
-        authors = set()
+        author_links = set()
         for comment in self.comments:
             if is_comment_valid(comment):
-                authors.add(comment.author)
+                author_links.add(comment.author.link)
                 filtered_comments.append(comment)
         return filtered_comments

@@ -1,6 +1,6 @@
 import argparse
-from src.randomizer import Randomizer
-from src.comment_fetcher import Fetcher
+from randomizer import Randomizer
+from comment_fetcher import Fetcher
 
 
 def main():
