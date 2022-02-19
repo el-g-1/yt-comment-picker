@@ -4,22 +4,26 @@ from comment_fetcher import Fetcher
 from LRU import LRUCache
 import json
 import argparse
+import threading
 
 
 class Server:
     def __init__(self, yt_key_filename):
         self.cache = LRUCache(10000)
+        self.cache_lock = threading.Lock()
         with open(yt_key_filename) as f:
             self.api_key = f.read()
 
     def load_comments(self, params):
         cache_key = params["session"]
-        all_comments = self.cache.get(cache_key)
+        with self.cache_lock:
+            all_comments = self.cache.get(cache_key)
         if not all_comments:
             all_comments = Fetcher(
                 self.api_key, params["video_id"], "snippet"
             ).fetch()
-            self.cache.put(cache_key, all_comments)
+            with self.cache_lock:
+                self.cache.put(cache_key, all_comments)
         response = {"num_comments": len(all_comments)}
         return response
 
