@@ -1,8 +1,5 @@
-import pytest
 from src.comment import Comment, Author
 from src.randomizer import Randomizer
-from unittest.mock import Mock
-import unittest
 import mock
 
 
