@@ -8,18 +8,21 @@ The criteria may include:
 
 The project is a Python HTTP server with a simple web UI. 
 
+## Dependencies
+
+To install dependencies:
+
+* `cd` into the project's root directory (where setup.py is located)
+* run: `pip install -e .` or `python setup.py install`
+
 ## Usage
 
 The server requires YouTube Data API key 
-that can be obtained via [Obtaining authorization credentials](https://developers.google.com/youtube/registering_an_application). \
-The API key must be stored in `data/yt_api_key.txt`.
+that can be obtained 
+via [Obtaining authorization credentials](https://developers.google.com/youtube/registering_an_application).
 
 To run the server:
 ```
-python src/server.py
+python yt_comment_picker/server.py --dev_key=<path to file containing YouTube API key>
 ```
 
-## Dependencies
-
-* Python 3.6
-* google-api-python-client: `pip install google-api-python-client`

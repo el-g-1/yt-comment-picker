@@ -1,107 +1,82 @@
-import http.server
-import socketserver
-from urllib.parse import urlparse, unquote
+from flask import Flask, request, make_response, render_template
 from randomizer import Randomizer
 from comment_fetcher import Fetcher
 from LRU import LRUCache
 import json
+import argparse
 
 
-class Server(socketserver.TCPServer):
-    def __init__(self, port, handler):
-        self.allow_reuse_address = True
-        super(Server, self).__init__(("", port), handler)
-        self.allow_reuse_address = True
+class Server:
+    def __init__(self, yt_key_filename):
         self.cache = LRUCache(10000)
-        with open(
-            "/Users/kisa/PycharmProjects/CommentPicker/data/yt_api_key.txt"
-        ) as myfile:
-            self.api_key = myfile.read()
+        with open(yt_key_filename) as f:
+            self.api_key = f.read()
+
+    def load_comments(self, params):
+        cache_key = params["session"]
+        all_comments = self.cache.get(cache_key)
+        if not all_comments:
+            all_comments = Fetcher(
+                self.api_key, params["video_id"], "snippet"
+            ).fetch()
+            self.cache.put(cache_key, all_comments)
+        response = {"num_comments": len(all_comments)}
+        return response
+
+    def handle_load_comments(self, params):
+        try:
+            return self.load_comments(params)
+        except Exception as ex:
+            return make_response(json.dumps({"error": str(ex)}), 500)
+
+    def pick_comment(self, params):
+        all_comments = self.cache.get(params["session"])
+        response = {}
+        if not all_comments:
+            response["error"] = "No comments were loaded"
+            return response
+        filter_text = params.get("filter_text", None)
+        randomizer = Randomizer(
+            all_comments, params["remove_duplicates"], filter_text
+        )
+        random_comment = randomizer.randomize()
+        if not random_comment:
+            response["error"] = "No comments were filtered"
+            return response
+        response = random_comment.as_dict()
+        response["author"] = random_comment.author.as_dict()
+        return response
+
+    def handle_pick_comment(self, params):
+        try:
+            return self.pick_comment(params)
+        except Exception as ex:
+            return make_response(json.dumps({"error": str(ex)}), 500)
 
 
 def main():
-    class MyHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
-        def load_comments(self, params):
-            cache_key = params["session"]
-            all_comments = self.server.cache.get(cache_key)
-            if not all_comments:
-                all_comments = Fetcher(
-                    self.server.api_key, params["video_id"], "snippet"
-                ).fetch()
-                self.server.cache.put(cache_key, all_comments)
-            response = {"num_comments": len(all_comments)}
-            return response
 
-        def handle_load_comments(self, params):
-            self.send_response(200)
-            self.send_header("Content-type", "application/json")
-            self.end_headers()
-            response = {}
-            try:
-                response = self.load_comments(params)
-            except Exception:
-                response["error"] = "Failed to load comments"
-            self.wfile.write(json.dumps(response).encode())
+    parser = argparse.ArgumentParser(description="YouTube comment picker")
+    parser.add_argument("--dev_key", "-d", required=True, help="YouTube API key")
 
-        def pick_comment(self, params):
-            all_comments = self.server.cache.get(params["session"])
-            response = {}
-            if not all_comments:
-                response["error"] = "No comments were loaded"
-                return response
-            filter_text = params.get("filter_text", None)
-            if filter_text is not None:
-                filter_text = unquote(filter_text)
-            randomizer = Randomizer(
-                all_comments, params["remove_duplicates"], filter_text
-            )
-            random_comment = randomizer.randomize()
-            if not random_comment:
-                response["error"] = "No comments were filtered"
-                return response
-            response = random_comment.as_dict()
-            response["author"] = random_comment.author.as_dict()
-            return response
+    args = parser.parse_args()
 
-        def handle_pick_comment(self, params):
-            self.send_response(200)
-            self.send_header("Content-type", "application/json")
-            self.end_headers()
-            response = self.pick_comment(params)
-            self.wfile.write(json.dumps(response).encode())
-            return
+    app = Flask("yt_comment_picker", template_folder="yt_comment_picker/templates")
+    server = Server(yt_key_filename=args.dev_key)
 
-        def handle_404(self):
-            self.send_error(404, "Page not found")
-            return
+    @app.route("/")
+    def root_handler():
+        return render_template("index.html")
 
-        def get_params(self):
-            parsed_path = urlparse(self.path)
-            params_list = [t.split("=") for t in parsed_path.query.split("&")]
-            params = {p[0]: p[1] for p in params_list}
-            return params
+    @app.route("/load_comments")
+    def load_comments_handler():
+        return server.handle_load_comments(request.args)
 
-        def do_GET(self):
-            if self.path == "/":
-                self.path = "yt_comment_picker/index.html"
-                return http.server.SimpleHTTPRequestHandler.do_GET(self)
-            if self.path.startswith("/load_comments"):
-                self.handle_load_comments(self.get_params())
-                return
-            if self.path.startswith("/comment"):
-                self.handle_pick_comment(self.get_params())
-                return
-            self.handle_404()
-            return
+    @app.route("/comment")
+    def pick_comment_handler():
+        return server.handle_pick_comment(request.args)
 
-    # Create an object of the above class
-    handler_object = MyHttpRequestHandler
-
-    PORT = 8000
-    my_server = Server(PORT, handler_object)
-
-    # Start the server
-    my_server.serve_forever()
+    app.run()
 
 
 if __name__ == "__main__":
