@@ -1,5 +1,5 @@
 import googleapiclient.discovery
-from src.comment import Comment, Author
+from comment import Comment, Author
 
 
 class Fetcher:

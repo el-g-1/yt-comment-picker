@@ -1,9 +1,9 @@
 import http.server
 import socketserver
 from urllib.parse import urlparse, unquote
-from src.randomizer import Randomizer
-from src.comment_fetcher import Fetcher
-from src.LRU import LRUCache
+from randomizer import Randomizer
+from comment_fetcher import Fetcher
+from LRU import LRUCache
 import json
 
 class Server(socketserver.TCPServer):
@@ -52,8 +52,8 @@ def main():
             if not random_comment:
                 response['error'] = 'No comments were filtered'
                 return response
-            response = random_comment._asdict()
-            response['author'] = random_comment.author._asdict()
+            response = random_comment.as_dict()
+            response['author'] = random_comment.author.as_dict()
             return response
 
         def handle_pick_comment(self, params):
@@ -94,7 +94,7 @@ def main():
     PORT = 8000
     my_server = Server(PORT, handler_object)
 
-    # Star the server
+    # Start the server
     my_server.serve_forever()
 
 

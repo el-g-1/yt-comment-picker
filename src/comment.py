@@ -1,12 +1,25 @@
-from collections import namedtuple
-import textwrap
-
-Author = namedtuple('Author', ['name', 'link', 'pic_link'], defaults=['', ''])
+import dataclasses
 
 
-class Comment(namedtuple('Comment', ['author', 'link', 'text', 'date'], defaults=['', '', ''])):
-    def __str__(self):
-        return str(self.author.name) + ' <' + str(self.link) + '>:\n' + textwrap.indent(textwrap.fill(self.text), '\t')
+@dataclasses.dataclass
+class Author:
+    name: str
+    link: str
+    pic_link: str
 
-    def get_text(self):
-        return self.text
+    def __hash__(self):
+        return hash(str(self))
+
+    def as_dict(self):
+        return dataclasses.asdict(self)
+
+
+@dataclasses.dataclass
+class Comment:
+    author: Author
+    link: str
+    text: str
+    date: str
+
+    def as_dict(self):
+        return dataclasses.asdict(self)

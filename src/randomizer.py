@@ -1,16 +1,5 @@
 import random
 
-# class Author(TypedDict):
-#     name: str
-#     link: str
-#     pic_link: str
-#
-#
-# class Comment(TypedDict):
-#     author: Author
-#     link: str
-#     text: str
-#     date: datetime.datetime
 
 class Randomizer:
     def __init__(self, comments, remove_duplicate_users=False, specific_text=None):
@@ -39,6 +28,6 @@ class Randomizer:
         authors = set()
         for comment in self.comments:
             if is_comment_valid(comment):
-                authors.update(comment.author)
+                authors.add(comment.author)
                 filtered_comments.append(comment)
         return filtered_comments
