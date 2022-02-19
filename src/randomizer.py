@@ -14,7 +14,6 @@ class Randomizer:
         return random.choice(filtered_comments)
 
     def filter(self):
-
         def is_comment_valid(comm):
             if self.specific_text:
                 if self.specific_text.lower() not in comm.text.lower():

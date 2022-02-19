@@ -1,7 +1,7 @@
 from collections import deque
 
-class LRUCache:
 
+class LRUCache:
     def __init__(self, capacity: int):
         self.capacity = capacity
         self.queue = deque()
@@ -22,7 +22,7 @@ class LRUCache:
         else:
             if self.capacity == 0:
                 removed = self.queue[self.queue_curr]
-                while removed == None:
+                while removed is None:
                     removed = self.queue[self.queue_curr]
                     self.queue_curr += 1
                 val, queue_idx = self.dict[removed]
