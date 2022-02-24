@@ -15,6 +15,10 @@ class Server:
             self.api_key = f.read()
 
     def load_comments(self, params):
+        """Loads comments based on 'params' with the following allowed key/values:
+                "session" - session identifier
+                "video_id" - id of the YouTube video
+        """
         cache_key = params["session"]
         with self.cache_lock:
             all_comments = self.cache.get(cache_key)
@@ -34,6 +38,12 @@ class Server:
             return make_response(json.dumps({"error": str(ex)}), 500)
 
     def pick_comment(self, params):
+        """Picks a random comment based on 'params' with the following allowed key/values:
+                "session" - id of the session (all comments are expected to be loaded with the
+                        same session id)
+                "remove_duplicates" - to remove multiple comments from any author
+                "filter_text" - to filter the comments containing filter_text
+                """
         all_comments = self.cache.get(params["session"])
         response = {}
         if not all_comments:
@@ -41,7 +51,7 @@ class Server:
             return response
         filter_text = params.get("filter_text", None)
         randomizer = Randomizer(
-            all_comments, params["remove_duplicates"], filter_text
+            all_comments, params.get("remove_duplicates", False), filter_text
         )
         random_comment = randomizer.randomize()
         if not random_comment:
@@ -60,11 +70,13 @@ class Server:
 
 def main():
 
+    # To parse the arguments from the command line
     parser = argparse.ArgumentParser(description="YouTube comment picker")
     parser.add_argument("--dev_key", "-d", required=True, help="YouTube API key")
 
     args = parser.parse_args()
 
+    # To create Flask application
     app = Flask("yt_comment_picker", template_folder="yt_comment_picker/templates")
     server = Server(yt_key_filename=args.dev_key)
 

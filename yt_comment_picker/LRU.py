@@ -3,6 +3,7 @@ from collections import deque
 
 class LRUCache:
     def __init__(self, capacity: int):
+        """Creates LRU cache with the given max capacity"""
         self.capacity = capacity
         self.queue = deque()
         self.queue_next = 0
@@ -10,14 +11,18 @@ class LRUCache:
         self.dict = {}
 
     def get(self, key):
+        """Gets value by key and updates the recency of the key, returns None if key doesn't
+                exist
+        """
         if key in self.dict:
-            self.update_queue(key)
+            self._update_queue(key)
             return self.dict[key][0]
         return None
 
     def put(self, key, value):
+        """Puts key/value in the cache"""
         if key in self.dict:
-            self.update_queue(key)
+            self._update_queue(key)
             self.dict[key] = (value, self.queue_next - 1)
         else:
             if self.capacity == 0:
@@ -34,7 +39,7 @@ class LRUCache:
             self.queue_next += 1
             self.capacity -= 1
 
-    def update_queue(self, key):
+    def _update_queue(self, key):
         val, queue_idx = self.dict[key]
         self.queue[queue_idx] = None
         self.queue.append(key)

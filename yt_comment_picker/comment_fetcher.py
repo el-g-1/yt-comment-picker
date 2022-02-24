@@ -35,6 +35,7 @@ class Fetcher:
         return local_comments
 
     def fetch(self):
+        """Fetches and returns all comments"""
         youtube = googleapiclient.discovery.build(
             "youtube", "v3", developerKey=self.developer_key
         )
@@ -56,15 +57,3 @@ class Fetcher:
             response = request.execute()
             all_comments += self.parsed(response["items"])
         return all_comments
-
-
-# with open('/Users/kisa/PycharmProjects/CommentPicker/data/yt_api_key.txt') as file:
-#     api_key = file.read()
-# test_1 = Fetcher(api_key, 'J3giFe91HAs', 'snippet')
-# all_comments = test_1.fetch()
-# print(len(all_comments))
-# for comment in all_comments:
-#     print(comment)
-
-# if __name__ == "__main__":
-#     main()

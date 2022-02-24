@@ -1,14 +1,11 @@
 import dataclasses
 
 
-@dataclasses.dataclass(frozen=True, unsafe_hash=False, eq=True)
+@dataclasses.dataclass(frozen=True, eq=True)
 class Author:
     name: str
     link: str = ''
     pic_link: str = ''
-
-    # def __hash__(self):
-    #     return hash(str(self))
 
     def as_dict(self):
         return dataclasses.asdict(self)

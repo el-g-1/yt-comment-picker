@@ -8,12 +8,12 @@ class Randomizer:
         self.specific_text = specific_text
 
     def randomize(self):
-        filtered_comments = self.filter()
+        filtered_comments = self._filter()
         if not filtered_comments:
             return None
         return random.choice(filtered_comments)
 
-    def filter(self):
+    def _filter(self):
         def is_comment_valid(comm):
             if self.specific_text:
                 if self.specific_text.lower() not in comm.text.lower():
